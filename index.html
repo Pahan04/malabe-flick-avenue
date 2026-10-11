@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malabe Flick Avenue - Front Desk Dashboard</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              cyan: '#06b6d4',
+              gold: '#f59e0b',
+              emerald: '#10b981',
+              rose: '#f43f5e',
+              dark: '#090d16',
+              card: '#111827',
+              panel: '#0d1322'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-[#090d16] text-slate-100 min-h-screen lg:h-screen lg:overflow-hidden flex flex-col selection:bg-cyan-500 selection:text-black">
+
+  <!-- ================= TOP HEADER BAR ================= -->
+  <header class="glass-header shrink-0 sticky top-0 z-30 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80 shadow-2xl">
+    
+    <!-- Left: Branding & Logo -->
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-teal-500 to-amber-400 p-0.5 shadow-lg shadow-cyan-950/50 flex items-center justify-center">
+        <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+          <span class="text-xl">🎬</span>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-black tracking-wider uppercase bg-gradient-to-r from-cyan-400 via-teal-200 to-amber-300 bg-clip-text text-transparent">
+            MALABE FLICK AVENUE
+          </h1>
+          <span class="cinema-badge text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+            Front Desk
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 font-medium">Cabin Booking Management System</p>
+      </div>
+    </div>
+
+    <!-- Center: Real-Time Digital Clock & Dynamic Calendar -->
+    <div class="flex items-center gap-4 bg-slate-900/90 border border-slate-800 px-4 py-1.5 rounded-2xl shadow-inner">
+      <div class="flex items-center gap-2">
+        <span class="text-cyan-400 text-sm">🕒</span>
+        <div id="digital-clock-time" class="font-mono text-base font-black tracking-wider text-slate-100">
+          --:--:-- --
+        </div>
+      </div>
+      <div class="h-4 w-px bg-slate-800"></div>
+      <div class="flex items-center gap-2">
+        <span class="text-amber-400 text-xs">📅</span>
+        <div id="digital-clock-date" class="text-xs font-semibold text-slate-300">
+          Sunday, Aug 23, 2026
+        </div>
+      </div>
+      <button id="btn-jump-now" class="ml-1 text-[11px] font-bold text-cyan-400 hover:text-cyan-300 bg-cyan-950/60 hover:bg-cyan-900/80 px-2 py-1 rounded-lg border border-cyan-800/60 transition-all" title="Scroll timeline to current time needle">
+        Jump to Now 📍
+      </button>
+      <button id="btn-power-cut" class="ml-1 text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 px-2 py-1 rounded-lg border border-amber-800/60 transition-all" title="Extend all currently active bookings by the power cut duration">
+        ⚡ Power Cut
+      </button>
+    </div>
+
+    <!-- Right: Quick Search & Primary Action CTAs -->
+    <div class="flex items-center gap-2.5">
+      <!-- Search Input -->
+      <div class="relative hidden xl:block">
+        <input type="text" id="search-bookings-input" placeholder="Search customer, phone, NIC..." 
+               class="bg-slate-900/90 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs text-slate-200 rounded-xl pl-8 pr-3 py-2 w-56 transition-all placeholder:text-slate-500">
+        <span class="absolute left-2.5 top-2.5 text-xs text-slate-500">🔍</span>
+      </div>
+
+      <!-- Clear All Bookings Helper -->
+      <button id="btn-reset-demo" class="p-2 text-slate-400 hover:text-slate-200 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs transition-all" title="Clear all bookings">
+        🔄
+      </button>
+
+      <!-- Action Button 1: + Direct Booking (Primary CTA) -->
+      <button id="btn-direct-booking" class="px-4 py-2 bg-gradient-to-r from-cyan-600 via-teal-600 to-cyan-500 hover:from-cyan-500 hover:to-teal-400 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-950/60 hover:shadow-cyan-800/40 border border-cyan-400/40 flex items-center gap-1.5 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+        <span class="text-base leading-none font-black">+</span>
+        <span>Direct Bookings</span>
+        <span class="bg-cyan-950/70 text-cyan-200 text-[10px] px-1.5 py-0.5 rounded font-mono ml-0.5">[N]</span>
+      </button>
+
+      <!-- Action Button 2: + Online Request -->
+      <button id="btn-online-request" class="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-purple-600 hover:from-amber-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-950/60 border border-amber-400/40 flex items-center gap-1.5 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+        <span class="text-base leading-none font-black">+</span>
+        <span>Online Bookings</span>
+        <span class="bg-purple-950/70 text-purple-200 text-[10px] px-1.5 py-0.5 rounded font-mono ml-0.5">[O]</span>
+      </button>
+
+      <!-- Action Button 3: 📊 Daily Sales Report -->
+      <button id="btn-sales-report" class="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-950/60 border border-emerald-400/40 flex items-center gap-1.5 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+        <span>📊</span>
+        <span>Daily Sales Report</span>
+        <span class="bg-emerald-950/70 text-emerald-200 text-[10px] px-1.5 py-0.5 rounded font-mono ml-0.5">[R]</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT AREA (75% / 25% SPLIT) ================= -->
+  <main class="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden p-4 gap-4">
+    
+    <!-- LEFT / MAIN PANEL (75% Width): Timeline Grid Matrix View -->
+    <section class="flex-1 lg:w-3/4 flex flex-col glass-panel rounded-2xl border border-slate-800 shadow-2xl overflow-hidden h-full min-h-0">
+      
+      <!-- Panel Header Bar -->
+      <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-cyan-400">📅</span>
+            <h2 class="text-sm font-black text-slate-100 uppercase tracking-wider">Cabin Timeline Matrix</h2>
+          </div>
+          <span class="text-xs text-slate-400 font-medium hidden sm:inline">Operating Hours: 09:00 AM – 07:00 AM</span>
+        </div>
+
+        <!-- Legend / Indicators -->
+        <div class="flex items-center gap-3 text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-emerald-600 border border-emerald-400"></span>
+            <span class="text-slate-300">Confirmed Bookings</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-amber-600/80 border border-dashed border-amber-400 animate-pulse"></span>
+            <span class="text-slate-300">Pending Bookings</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-cyan-600 border border-cyan-300 shadow-[0_0_8px_#22d3ee]"></span>
+            <span class="text-slate-300">Active Bookings</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gantt Matrix Scrollable Container -->
+      <div id="timeline-scroll-container" class="timeline-container flex-1 overflow-x-auto overflow-y-auto relative bg-[#0a0f1d] min-h-0">
+        <div class="min-w-[1400px] relative pb-6" id="timeline-container">
+          
+          <!-- Current Time Indicator Needle (Vertical line through all cabins) -->
+          <div id="current-time-indicator" class="current-time-line hidden">
+            <div id="current-time-badge" class="current-time-badge">NOW 1:25 PM</div>
+          </div>
+
+          <!-- Sticky Timeline Header: Cabin Title + Time Slots -->
+          <div class="timeline-sticky-header flex items-stretch border-b border-slate-800 bg-[#0d1322]">
+            <!-- Sticky Cabin Header Corner -->
+            <div class="cabin-sticky-col w-48 shrink-0 px-3 py-2 flex items-center justify-between border-r border-slate-800 bg-[#0d1322]">
+              <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Cabins (10)</span>
+              <span class="text-[10px] text-slate-500 font-mono">10 Cabins</span>
+            </div>
+
+            <!-- Time Slots Header Columns (09:00 - 24:00) -->
+            <div id="timeline-time-header" class="flex-1 flex items-stretch">
+              <!-- Dynamically populated by timeline.js -->
+            </div>
+          </div>
+
+          <!-- Timeline Grid Body (Cabins 01 to 10 rows) -->
+          <div id="timeline-grid-body" class="relative">
+            <!-- Dynamically populated by timeline.js -->
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Quick Matrix Footer Helper -->
+      <div class="px-4 py-2 bg-slate-900/90 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between shrink-0">
+        <div>💡 <em>Tip: Click any empty time cell to book that suite; click an existing booking to edit details.</em></div>
+        <div class="text-slate-500 font-mono">Base Rate: Rs. 2,500 (3h) • Extra: +Rs. 1,000/hr</div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDEBAR PANEL (25% Width): Pending Online Requests -->
+    <aside class="w-full lg:w-1/4 flex flex-col glass-panel rounded-2xl border border-slate-800 shadow-2xl overflow-hidden h-full min-h-0">
+      
+      <!-- Sidebar Header -->
+      <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-amber-400 text-base">📲</span>
+          <h2 class="text-sm font-black text-slate-100 uppercase tracking-wider">Online Bookings</h2>
+        </div>
+        <span id="online-requests-count" class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          3 Pending
+        </span>
+      </div>
+
+      <!-- Subtitle notice -->
+      <div class="px-4 py-2 bg-amber-950/20 border-b border-amber-500/20 text-[11px] text-amber-200/80 flex items-center justify-between shrink-0">
+        <span>⚡ Soft-blocked on matrix to avoid double bookings</span>
+        <button id="btn-quick-add-online" class="text-cyan-400 hover:underline font-bold text-[10px]" onclick="window.flickApp.openNewOnlineRequestModal()">+ New</button>
+      </div>
+
+      <!-- Requests Cards List Container -->
+      <div id="online-requests-list" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 overscroll-contain">
+        <!-- Dynamically populated by app.js -->
+      </div>
+
+      <!-- Sidebar Footer Quick Info -->
+      <div class="p-3 bg-slate-900/80 border-t border-slate-800 text-xs text-slate-400 flex flex-col gap-1.5 shrink-0">
+        <div class="flex justify-between">
+          <span>Web & Mobile App Status:</span>
+          <span class="text-emerald-400 font-bold">● Connected</span>
+        </div>
+        <div class="flex justify-between text-[11px] text-slate-500">
+          <span>Auto-sync interval:</span>
+          <span class="font-mono">Real-time</span>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ================= MODALS & POPUP OVERLAYS ================= -->
+
+  <!-- 1. ADD / EDIT DIRECT BOOKING MODAL -->
+  <div id="booking-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-modal w-full max-w-2xl rounded-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="modal-header px-6 py-4 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-base">
+            🎟️
+          </span>
+          <div>
+            <h3 id="booking-modal-title" class="text-base font-black text-slate-100 uppercase tracking-wider">
+              New Direct Booking
+            </h3>
+            <p class="text-xs text-slate-400">Customer Details, Cabin Duration & Beverage Add-Ons</p>
+          </div>
+        </div>
+        <button data-close-modal class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-lg transition-colors">✕</button>
+      </div>
+
+      <!-- Conflict Alert (Dynamic) -->
+      <div id="booking-conflict-alert" class="hidden shrink-0 px-6 py-2.5 bg-amber-950/80 border-b border-amber-500/40 text-xs text-amber-200 flex items-center gap-2">
+        <!-- Text injected dynamically -->
+      </div>
+
+      <!-- Form with Dedicated Scrolling Body and Pinned Footer -->
+      <form id="booking-form" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <input type="hidden" id="booking-id-input" value="">
+
+        <!-- Modal Body (Scrollable Form Fields) -->
+        <div class="modal-body flex-1 min-h-0 overflow-y-auto p-6 space-y-5">
+
+          <!-- SECTION 1: Cabin & Customer Identification -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                <span>①</span> Cabin Assignment & Customer Details
+              </div>
+              <span class="text-[11px] text-slate-400">Staff-controlled cabin allocation</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Cabin Select -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Assigned Cabin *</label>
+                <select id="booking-cabin-select" class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-medium">
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+
+              <!-- Customer Full Name -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Customer Name *</label>
+                <input type="text" id="booking-customer-name" required placeholder="e.g. Kasun Fernando"
+                       class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500">
+              </div>
+
+              <!-- Customer NIC 1 -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Customer NIC 1 (Primary) *</label>
+                <input type="text" id="booking-nic1" required placeholder="e.g. 199824501234 or 952341234V"
+                       class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 font-mono">
+              </div>
+
+              <!-- Customer NIC 2 -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Customer NIC 2 (Secondary)</label>
+                <input type="text" id="booking-nic2" placeholder="e.g. 200178904561"
+                       class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 font-mono">
+              </div>
+
+              <!-- Phone Number -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
+                <input type="tel" id="booking-phone" placeholder="07X XXXXXXX"
+                       class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 font-mono">
+              </div>
+
+              <!-- Number of People (Guest Count) -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                  <span>Number of People *</span>
+                  <span class="text-[10px] text-amber-400 font-normal">1-4 Base Rate • +Rs. 800/extra (5+)</span>
+                </label>
+                <select id="booking-guests" class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-medium">
+                  <option value="1">1 Person</option>
+                  <option value="2" selected>2 People</option>
+                  <option value="3">3 People</option>
+                  <option value="4">4 People</option>
+                  <option value="5">5 People (+Rs. 800 extra)</option>
+                  <option value="6">6 People (+Rs. 1,600 extra)</option>
+                  <option value="7">7 People (+Rs. 2,400 extra)</option>
+                  <option value="8">8 People (+Rs. 3,200 extra)</option>
+                  <option value="9">9 People (+Rs. 4,000 extra)</option>
+                  <option value="10">10 People (+Rs. 4,800 extra)</option>
+                </select>
+              </div>
+
+              <!-- Start Time -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Start Time Slot *</label>
+                <select id="booking-start-time" class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+                  <!-- Dynamically populated -->
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ONLINE SETTLEMENT SECTION (Shown when editing an Online Booking) -->
+          <div id="booking-online-settlement-section" class="hidden pt-4 border-t border-purple-800/60 bg-purple-950/20 p-3.5 rounded-xl border space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                <span>📲</span> Online Request Payment & Settlement
+              </div>
+              <span id="booking-online-status-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Advance Paid
+              </span>
+            </div>
+
+            <!-- Editable Online Payment Status Selector -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Online Payment Status</label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="cursor-pointer">
+                  <input type="radio" name="edit-online-payment-status" id="edit-online-pay-advance" value="advance" class="peer sr-only">
+                  <div class="p-2 rounded-lg border border-slate-700 bg-slate-800/80 peer-checked:border-amber-500 peer-checked:bg-amber-950/50 peer-checked:text-amber-200 text-xs font-semibold text-slate-300 transition-all flex flex-col gap-0.5">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold flex items-center gap-1"><span>💳</span> Advance Paid</span>
+                      <span class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">Rs. 1,000</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Rs. 1,500 base bal + extra hrs/guests</span>
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="edit-online-payment-status" id="edit-online-pay-full" value="full" class="peer sr-only">
+                  <div class="p-2 rounded-lg border border-slate-700 bg-slate-800/80 peer-checked:border-emerald-500 peer-checked:bg-emerald-950/50 peer-checked:text-emerald-200 text-xs font-semibold text-slate-300 transition-all flex flex-col gap-0.5">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold flex items-center gap-1"><span>✨</span> Full Payment</span>
+                      <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">100% Pre-paid</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Paid in full online • Zero balance</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div id="booking-online-settlement-content" class="space-y-2 text-xs">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- SECTION 2: Duration & Cabin Payment Method -->
+          <div class="pt-4 border-t border-slate-800">
+            <div class="text-xs font-bold uppercase tracking-wider text-cyan-400 mb-3 flex items-center gap-1.5">
+              <span>②</span> Session Duration & Suite Payment
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Duration Selection -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Duration (Default 3 Hours = Rs. 2,500)</label>
+                <select id="booking-duration" class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+                  <option value="3">3 Hours (Standard Base - Rs. 2,500)</option>
+                  <option value="4">4 Hours (+1 Extra Hour = Rs. 3,500)</option>
+                  <option value="5">5 Hours (+2 Extra Hours = Rs. 4,500)</option>
+                  <option value="6">6 Hours (+3 Extra Hours = Rs. 5,500)</option>
+                </select>
+                <div class="text-[11px] text-slate-400 mt-1 flex justify-between">
+                  <span>Calculated End Time:</span>
+                  <span id="booking-end-time-display" class="font-bold text-cyan-400 font-mono">17:00 (5:00 PM)</span>
+                </div>
+              </div>
+
+              <!-- Cabin Payment Method Toggle (Cash vs Card) -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Cabin Payment Method</label>
+                <div class="grid grid-cols-2 gap-2 bg-slate-900 p-1 rounded-xl border border-slate-700">
+                  <label class="cursor-pointer">
+                    <input type="radio" name="cabin-payment" id="pay-cabin-cash" value="Cash" checked class="peer sr-only">
+                    <div class="text-center py-1.5 px-3 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-emerald-600 peer-checked:text-white transition-all flex items-center justify-center gap-1 select-none">
+                      <span>💵</span> Cash
+                    </div>
+                  </label>
+                  <label class="cursor-pointer">
+                    <input type="radio" name="cabin-payment" id="pay-cabin-card" value="Card" class="peer sr-only">
+                    <div class="text-center py-1.5 px-3 rounded-lg text-xs font-bold text-slate-400 peer-checked:bg-cyan-600 peer-checked:text-white transition-all flex items-center justify-center gap-1 select-none">
+                      <span>💳</span> Card
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: Beverage & Snacks Add-ons -->
+          <div class="pt-4 border-t border-slate-800">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                <span>③</span> Beverage & Snacks Add-ons
+              </div>
+              <span class="text-[11px] text-slate-400">Independent Cash / Card tracking per item</span>
+            </div>
+
+            <div class="space-y-2.5 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+              
+              <!-- Item 1: Chips Packets (Rs. 350) -->
+              <div class="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-800/60 rounded-lg">
+                <div>
+                  <div class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <span>🥔</span> Chips Packets
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-mono">Rs. 350 each</div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <!-- Qty Stepper -->
+                  <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg">
+                    <button type="button" class="snack-qty-btn px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-l-lg font-bold" data-item="chips" data-change="-1">-</button>
+                    <span id="snack-qty-chips" class="w-8 text-center py-1 text-xs font-mono font-bold text-slate-100">0</span>
+                    <button type="button" class="snack-qty-btn px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-r-lg font-bold" data-item="chips" data-change="1">+</button>
+                  </div>
+                  <!-- Payment Toggle -->
+                  <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700 text-[11px] shrink-0">
+                    <label class="cursor-pointer">
+                      <input type="radio" name="pay-snack-chips" id="pay-snack-chips-cash" value="Cash" checked class="peer sr-only snack-pay-toggle">
+                      <span class="w-12 text-center py-0.5 rounded text-slate-400 peer-checked:bg-emerald-600 peer-checked:text-white block font-bold transition-colors select-none">Cash</span>
+                    </label>
+                    <label class="cursor-pointer">
+                      <input type="radio" name="pay-snack-chips" id="pay-snack-chips-card" value="Card" class="peer sr-only snack-pay-toggle">
+                      <span class="w-12 text-center py-0.5 rounded text-slate-400 peer-checked:bg-cyan-600 peer-checked:text-white block font-bold transition-colors select-none">Card</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 2: Small Water Bottles (Rs. 100) -->
+              <div class="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-800/60 rounded-lg">
+                <div>
+                  <div class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <span>💧</span> Small Water Bottles
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-mono">Rs. 100 each</div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg">
+                    <button type="button" class="snack-qty-btn px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-l-lg font-bold" data-item="waterSmall" data-change="-1">-</button>
+                    <span id="snack-qty-waterSmall" class="w-8 text-center py-1 text-xs font-mono font-bold text-slate-100">0</span>
+                    <button type="button" class="snack-qty-btn px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-r-lg font-bold" data-item="waterSmall" data-change="1">+</button>
+                  </div>
+                  <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700 text-[11px] shrink-0">
+                    <label class="cursor-pointer">
+                      <input type="radio" name="pay-snack-waterSmall" id="pay-snack-waterSmall-cash" value="Cash" checked class="peer sr-only snack-pay-toggle">
+                      <span class="w-12 text-center py-0.5 rounded text-slate-400 peer-checked:bg-emerald-600 peer-checked:text-white block font-bold transition-colors select-none">Cash</span>
+                    </label>
+                    <label class="cursor-pointer">
+                      <input type="radio" name="pay-snack-waterSmall" id="pay-snack-waterSmall-card" value="Card" class="peer sr-only snack-pay-toggle">
+                      <span class="w-12 text-center py-0.5 rounded text-slate-400 peer-checked:bg-cyan-600 peer-checked:text-white block font-bold transition-colors select-none">Card</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 3: Large Water Bottles (Rs. 150) -->
+              <div class="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-800/60 rounded-lg">
+                <div>
+                  <div class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <span>🍾</span> Large Water Bottles
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-mono">Rs. 150 each</div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg">
+                    <button type="button" class="snack-qty-btn px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-l-lg font-bold" data-item="waterLarge" data-change="-1">-</button>
+                    <span id="snack-qty-waterLarge" class="w-8 text-center py-1 text-xs font-mono font-bold text-slate-100">0</span>
+                    <button type="button" class="snack-qty-btn px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-r-lg font-bold" data-item="waterLarge" data-change="1">+</button>
+                  </div>
+                  <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700 text-[11px] shrink-0">
+                    <label class="cursor-pointer">
+                      <input type="radio" name="pay-snack-waterLarge" id="pay-snack-waterLarge-cash" value="Cash" checked class="peer sr-only snack-pay-toggle">
+                      <span class="w-12 text-center py-0.5 rounded text-slate-400 peer-checked:bg-emerald-600 peer-checked:text-white block font-bold transition-colors select-none">Cash</span>
+                    </label>
+                    <label class="cursor-pointer">
+                      <input type="radio" name="pay-snack-waterLarge" id="pay-snack-waterLarge-card" value="Card" class="peer sr-only snack-pay-toggle">
+                      <span class="w-12 text-center py-0.5 rounded text-slate-400 peer-checked:bg-cyan-600 peer-checked:text-white block font-bold transition-colors select-none">Card</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 5: Cool Drink (Rs. 250) -->
+              <div class="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-800/60 rounded-lg">
+                <div>
+                  <div class="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <span>🥤</span> Cool Drinks
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-mono">Rs. 250 each</div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg">
+                    <button type="button" class="snack-qty-btn px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-l-lg font-bold" data-item="softDrink" data-change="-1">-</button>
+                    <span id="snack-qty-softDrink" class="w-8 text-center py-1 text-xs font-mono font-bold text-slate-100">0</span>
+                    <button type="button" class="snack-qty-btn px-2.5 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded-r-lg font-bold" data-item="softDrink" data-change="1">+</button>
+                  </div>
+                  <div class="flex bg-slate-900 p-0.5 rounded-lg border border-slate-700 text-[11px] shrink-0">
+                    <label class="cursor-pointer">
+                      <input type="radio" name="pay-snack-softDrink" id="pay-snack-softDrink-cash" value="Cash" checked class="peer sr-only snack-pay-toggle">
+                      <span class="w-12 text-center py-0.5 rounded text-slate-400 peer-checked:bg-emerald-600 peer-checked:text-white block font-bold transition-colors select-none">Cash</span>
+                    </label>
+                    <label class="cursor-pointer">
+                      <input type="radio" name="pay-snack-softDrink" id="pay-snack-softDrink-card" value="Card" class="peer sr-only snack-pay-toggle">
+                      <span class="w-12 text-center py-0.5 rounded text-slate-400 peer-checked:bg-cyan-600 peer-checked:text-white block font-bold transition-colors select-none">Card</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- SECTION 4: Special Notes -->
+          <div class="pt-4 border-t border-slate-800">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Special Notes / Movie Preferences</label>
+            <textarea id="booking-notes" rows="2" placeholder="e.g. Birthday surprise setup, requested sound volume calibration..."
+                      class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500"></textarea>
+          </div>
+
+          <!-- SECTION 5: Live Calculated Amount Summary Box -->
+          <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner space-y-2">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Cabin Base (3 Hours, 1-4 Guests):</span>
+              <span id="summary-base-rate" class="font-mono text-slate-200">Rs. 2,500</span>
+            </div>
+            <div id="summary-extra-guests-row" class="flex justify-between text-xs text-amber-300 hidden">
+              <span id="summary-extra-guests-label">Extra Guests Surcharge (5+ Guests):</span>
+              <span id="summary-extra-guests-rate" class="font-mono">+Rs. 0</span>
+            </div>
+            <div id="summary-extra-hours-row" class="flex justify-between text-xs text-amber-300 hidden">
+              <span>Extra Hours Surcharge:</span>
+              <span id="summary-extra-rate" class="font-mono">+Rs. 0</span>
+            </div>
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Beverage & Snack Add-ons:</span>
+              <span id="summary-snacks-total" class="font-mono text-slate-200">Rs. 0</span>
+            </div>
+            <div class="h-px bg-slate-700/60 my-1"></div>
+            <div class="flex flex-wrap items-center justify-between text-xs font-semibold gap-2">
+              <span class="text-emerald-400 flex items-center gap-1">Cash Payable: <span id="summary-cash-total" class="font-mono font-bold">Rs. 2,500</span></span>
+              <span class="text-cyan-400 flex items-center gap-1">Card Payable: <span id="summary-card-total" class="font-mono font-bold">Rs. 0</span></span>
+            </div>
+            <div class="flex justify-between text-base font-black pt-1 border-t border-slate-700 text-slate-100">
+              <span>GRAND TOTAL:</span>
+              <span id="summary-grand-total" class="font-mono text-amber-400 text-lg">Rs. 2,500</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Pinned Modal Footer Actions -->
+        <div class="modal-footer shrink-0 px-6 py-3.5 bg-slate-900/95 border-t border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <button type="button" id="booking-delete-btn" class="hidden px-3 py-2 text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-950/50 rounded-xl border border-rose-800/60 transition-all">
+              🗑️ Delete Booking
+            </button>
+            <button type="button" id="booking-early-checkout-btn" class="hidden px-3 py-2 text-xs font-bold text-amber-400 hover:text-amber-300 hover:bg-amber-950/50 rounded-xl border border-amber-600/60 transition-all flex items-center gap-1.5">
+              ⚡ Early Checkout
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" id="booking-accept-checkin-btn" class="hidden px-4 py-2 text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl shadow-lg shadow-emerald-950/60 border border-emerald-400/40 transition-all flex items-center gap-1">
+              <span>✓</span> Accept & Check-In
+            </button>
+            <button type="button" data-close-modal class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-all">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 text-xs font-bold bg-gradient-to-r from-cyan-600 to-teal-500 hover:from-cyan-500 hover:to-teal-400 text-white rounded-xl shadow-lg shadow-cyan-950/60 border border-cyan-400/40 transition-all">
+              Confirm & Save Booking
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. ADD ONLINE REQUEST MODAL (Soft-Block Reservation Intake) -->
+  <div id="online-request-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-modal w-full max-w-lg rounded-2xl overflow-hidden max-h-[85vh] flex flex-col shadow-2xl">
+      <div class="modal-header px-6 py-4 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-base">
+            📲
+          </span>
+          <div>
+            <h3 class="text-base font-black text-slate-100 uppercase tracking-wider">New Online Bookings</h3>
+            <p class="text-xs text-slate-400">Creates a Soft Block on the timeline matrix</p>
+          </div>
+        </div>
+        <button data-close-modal class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-lg transition-colors">✕</button>
+      </div>
+
+      <form id="online-request-form" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <div class="modal-body flex-1 min-h-0 overflow-y-auto p-6 space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Customer Name *</label>
+            <input type="text" id="online-customer-name"  placeholder="e.g. Kavindu Perera"
+                   class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Customer NIC 1</label>
+              <input type="text" id="online-nic1"  placeholder="NIC Number"
+                     class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Customer NIC 2</label>
+              <input type="text" id="online-nic2" placeholder="Guest NIC"
+                     class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
+            <input type="tel" id="online-phone" placeholder="07X XXXXXXX"
+                   class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Staff Assigned Suite *</label>
+              <select id="online-cabin-select" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-medium">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                <span>Number of People *</span>
+                <span class="text-[10px] text-amber-400 font-normal">5+ = +Rs. 800/ea</span>
+              </label>
+              <select id="online-guests" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-medium">
+                <option value="1">1 Person</option>
+                <option value="2" selected>2 People</option>
+                <option value="3">3 People</option>
+                <option value="4">4 People</option>
+                <option value="5">5 People (+Rs. 800 extra)</option>
+                <option value="6">6 People (+Rs. 1,600 extra)</option>
+                <option value="7">7 People (+Rs. 2,400 extra)</option>
+                <option value="8">8 People (+Rs. 3,200 extra)</option>
+                <option value="9">9 People (+Rs. 4,000 extra)</option>
+                <option value="10">10 People (+Rs. 4,800 extra)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Start Time *</label>
+              <select id="online-start-time" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Duration</label>
+              <select id="online-duration" class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+                <option value="3">3 Hours (Standard Base - Rs. 2,500)</option>
+                <option value="4">4 Hours (+1 Extra Hour = Rs. 3,500)</option>
+                <option value="5">5 Hours (+2 Extra Hours = Rs. 4,500)</option>
+                <option value="6">6 Hours (+3 Extra Hours = Rs. 5,500)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- PAYMENT OPTIONS SELECTOR & ADVANCE BREAKDOWN -->
+          <div class="p-3.5 bg-slate-900/90 rounded-xl border border-slate-700/80 space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">Online Payment Status *</label>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="cursor-pointer">
+                  <input type="radio" name="online-payment-status" id="online-pay-advance" value="advance" checked class="peer sr-only">
+                  <div class="p-2.5 rounded-lg border border-slate-700 bg-slate-800/80 peer-checked:border-amber-500 peer-checked:bg-amber-950/40 peer-checked:text-amber-200 text-xs font-semibold text-slate-300 transition-all flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold flex items-center gap-1"><span>💳</span> Advance Paid</span>
+                      <span class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">Rs. 1,000</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Rs. 1,000 online • Bal due at venue</span>
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="online-payment-status" id="online-pay-full" value="full" class="peer sr-only">
+                  <div class="p-2.5 rounded-lg border border-slate-700 bg-slate-800/80 peer-checked:border-emerald-500 peer-checked:bg-emerald-950/40 peer-checked:text-emerald-200 text-xs font-semibold text-slate-300 transition-all flex flex-col gap-1">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold flex items-center gap-1"><span>✨</span> Full Payment</span>
+                      <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">100% Pre-paid</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400">100% paid online • Zero balance due</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- DYNAMIC UI INDICATOR BANNER -->
+            <div id="online-payment-indicator" class="p-2.5 rounded-lg bg-amber-950/70 border border-amber-500/50 text-amber-200 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-base">⏳</span>
+                <div>
+                  <div class="text-[11px] text-amber-300/80 font-medium">Advance Paid Online: <span class="font-mono font-bold text-slate-100">Rs. 1,000</span></div>
+                  <div class="text-xs font-black text-amber-300 tracking-wide uppercase">Pending Balance: <span id="online-indicator-balance-text" class="font-mono text-amber-400">Rs. 1,500</span></div>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-500/30 text-amber-200 rounded border border-amber-400/40 uppercase tracking-wider">
+                Due At Venue
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">App Booking Notes</label>
+            <textarea id="online-notes" rows="2" placeholder="e.g. Web reservation request, requested AC temperature..."
+                      class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer shrink-0 flex items-center justify-end gap-2 px-6 py-3.5 bg-slate-900/95 border-t border-slate-800">
+          <button type="button" data-close-modal class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold bg-gradient-to-r from-amber-600 to-purple-600 hover:from-amber-500 hover:to-purple-500 text-white rounded-xl shadow-lg border border-purple-400/40 transition-all">
+            Create Online Booking
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. DAILY SALES REPORT MODAL -->
+  <div id="sales-report-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-modal w-full max-w-4xl rounded-2xl overflow-hidden max-h-[85vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="modal-header px-6 py-4 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-base">
+            📊
+          </span>
+          <div>
+            <h3 class="text-base font-black text-slate-100 uppercase tracking-wider">Daily Sales Report</h3>
+            <p class="text-xs text-slate-400">Front desk revenue summary, Cash vs Card breakdown & snack tallies</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <input type="date" id="report-date-input" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2.5 py-1 text-slate-200 font-mono">
+          <button data-close-modal class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-lg transition-colors">✕</button>
+        </div>
+      </div>
+
+      <!-- Report Body -->
+      <div class="modal-body flex-1 min-h-0 overflow-y-auto p-6 space-y-6">
+        
+        <!-- Stats Summary Cards (3 Cards) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          
+          <!-- Card 1: Total Cash Revenue -->
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-emerald-500/40 shadow-lg flex flex-col justify-between">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-bold uppercase text-emerald-400 tracking-wider">Total Cash Revenue</span>
+              <span class="text-base">💵</span>
+            </div>
+            <div id="report-total-cash">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+
+          <!-- Card 2: Total Card Revenue -->
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-cyan-500/40 shadow-lg flex flex-col justify-between">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-bold uppercase text-cyan-400 tracking-wider">Total Card Revenue</span>
+              <span class="text-base">💳</span>
+            </div>
+            <div id="report-total-card">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+
+          <!-- Card 3: Grand Total Combined Revenue -->
+          <div class="bg-gradient-to-br from-slate-900 via-amber-950/40 to-slate-900 p-4 rounded-xl border border-amber-500/50 shadow-xl flex flex-col justify-between">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-xs font-black uppercase text-amber-400 tracking-wider">Grand Total Sales</span>
+              <span class="text-base">💎</span>
+            </div>
+            <div id="report-grand-total">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Online Payment Reconciliation & Till Note -->
+        <div id="report-online-audit-container" class="p-3.5 bg-slate-900/80 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Online Request Bookings & Venue Balance Settlements Log Table -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <span>📲</span> Online Request Bookings & Venue Balance Settlements Log
+            </h4>
+            <span class="text-[11px] text-slate-400">Advances excluded • Settled balances recorded in Cash/Card daily till</span>
+          </div>
+          <div class="overflow-x-auto bg-slate-900/90 rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-800/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
+                <tr>
+                  <th class="py-2.5 px-3">Customer & Suite</th>
+                  <th class="py-2.5 px-3">Time Slot</th>
+                  <th class="py-2.5 px-3 text-right">Online Advance (Excluded)</th>
+                  <th class="py-2.5 px-3 text-right">Venue Balance Due</th>
+                  <th class="py-2.5 px-3 text-center">Settlement Status</th>
+                  <th class="py-2.5 px-3 text-right text-emerald-400">Cash Till Log</th>
+                  <th class="py-2.5 px-3 text-right text-cyan-400">Card Till Log</th>
+                </tr>
+              </thead>
+              <tbody id="report-online-transactions-tbody">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Itemized Beverage & Snacks Sales Table -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-1.5">
+            <span>🍿</span> Itemized Beverage & Snack Concessions Breakdown
+          </h4>
+          <div class="overflow-x-auto bg-slate-900/90 rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-800/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
+                <tr>
+                  <th class="py-2.5 px-3">Item Description</th>
+                  <th class="py-2.5 px-3 text-right">Unit Price</th>
+                  <th class="py-2.5 px-3 text-center">Total Sold</th>
+                  <th class="py-2.5 px-3 text-right text-emerald-400">Cash Sales</th>
+                  <th class="py-2.5 px-3 text-right text-cyan-400">Card Sales</th>
+                  <th class="py-2.5 px-3 text-right text-amber-400">Total Concession</th>
+                </tr>
+              </thead>
+              <tbody id="report-snacks-tbody">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Cabin Performance Grid -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-1.5">
+            <span>🚪</span> Suite Utilization & Performance Summary
+          </h4>
+          <div id="report-cabins-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer shrink-0 px-6 py-3.5 bg-slate-900/95 border-t border-slate-800 flex justify-end">
+        <button data-close-modal class="px-5 py-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl">
+          Close Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Power Cut Modal -->
+  <div id="power-cut-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-modal w-full max-w-md rounded-2xl border border-amber-700/60 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="modal-header shrink-0 px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-amber-300 flex items-center gap-2">⚡ Power Cut Adjustment</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Extend all currently active bookings by the outage duration.</p>
+        </div>
+        <button data-close-modal class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-lg transition-colors">✕</button>
+      </div>
+      <div class="modal-body px-6 py-5 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Power Cut Duration (minutes)</label>
+          <input type="number" id="power-cut-minutes-input" min="1" step="1" placeholder="e.g. 25"
+                 class="w-full bg-slate-800 border border-slate-700 focus:border-amber-500 rounded-xl px-3 py-2.5 text-slate-100 font-mono text-lg">
+        </div>
+        <div id="power-cut-preview" class="text-xs text-slate-400 leading-relaxed bg-slate-900/70 border border-slate-800 rounded-xl px-3 py-2.5">
+          This will add the entered number of minutes to the end time of every booking that is currently ongoing right now (across all cabins). Bookings that haven't started yet or already ended are not affected.
+        </div>
+      </div>
+      <div class="modal-footer shrink-0 px-6 py-3.5 bg-slate-900/95 border-t border-slate-800 flex justify-end gap-3">
+        <button data-close-modal class="px-4 py-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl">
+          Cancel
+        </button>
+        <button id="btn-apply-power-cut" class="px-5 py-2 text-xs font-bold bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white rounded-xl shadow-lg flex items-center gap-1.5">
+          ⚡ Apply to Active Bookings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 pointer-events-none"></div>
+
+  <!-- App Scripts -->
+  <script src="js/app.js"></script>
+</body>
+</html>
