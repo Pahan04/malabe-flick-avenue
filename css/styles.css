@@ -17,64 +17,41 @@
   --purple-accent: #8b5cf6;
 }
 
-/* Global Reset & Horizontal Scroll Guard */
-html, body {
-  -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
-  max-width: 100vw;
-}
-
-* {
-  min-width: 0; /* allows flex children to shrink */
-}
-
-img, svg, video {
-  max-width: 100%;
-  height: auto;
-}
-
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-main);
   color: #e2e8f0;
   overflow-x: hidden;
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
 }
 
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Touch targets & latency elimination */
-button, select, input, textarea, .empty-slot-guide, [data-booking-id], .online-request-card, .snack-pay-toggle {
-  touch-action: manipulation;
-}
-
 /* Glassmorphism & Surface Utilities */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.96);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
 }
 
 .glass-header {
-  background: rgba(13, 19, 34, 0.98);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: rgba(13, 19, 34, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-modal {
-  background: rgba(15, 23, 42, 0.98);
+  background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(6, 182, 212, 0.1);
   display: flex;
   flex-direction: column;
-  max-height: calc(100dvh - 32px);
+  max-height: 85vh;
   height: auto;
   position: relative;
 }
@@ -86,19 +63,9 @@ button, select, input, textarea, .empty-slot-guide, [data-booking-id], .online-r
 .modal-body {
   flex: 1 1 auto;
   min-height: 0;
-  max-height: calc(100dvh - 135px);
+  max-height: calc(85vh - 135px);
   overflow-y: auto;
   overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
-@media (min-width: 640px) {
-  .glass-modal {
-    max-height: 85vh;
-  }
-  .modal-body {
-    max-height: calc(85vh - 135px);
-  }
 }
 
 .modal-footer {
@@ -150,11 +117,6 @@ button, select, input, textarea, .empty-slot-guide, [data-booking-id], .online-r
   min-height: 68px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   transition: background-color 0.15s ease;
-  contain: layout paint style;   /* Preserved */
-}
-
-#timeline-grid-body {
-  contain: layout paint;          /* Preserved */
 }
 
 .cabin-row:hover {
@@ -199,70 +161,61 @@ button, select, input, textarea, .empty-slot-guide, [data-booking-id], .online-r
 
 /* 2. Soft Block / Pending Online Booking */
 .booking-card-pending {
-  position: relative;
   background: linear-gradient(135deg, rgba(120, 53, 15, 0.7) 0%, rgba(180, 83, 9, 0.65) 100%);
   border: 1.5px dashed rgba(251, 191, 36, 0.85);
   color: #fef3c7;
+  animation: softBlockPulse 2.5s infinite ease-in-out;
   cursor: pointer;
 }
 
-/* The pulsing ring — animated only via opacity (composited, near-zero cost) */
-.booking-card-pending::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  box-shadow: 0 0 14px 2px rgba(245, 158, 11, 0.6);
-  opacity: 0.25;
-  animation: softBlockPulse 2.5s ease-in-out infinite;
-  will-change: opacity;
-  pointer-events: none;
-}
-
 .booking-card-pending:hover {
+  animation-play-state: paused;
   transform: translateY(-1px);
   background: linear-gradient(135deg, rgba(146, 64, 14, 0.85) 0%, rgba(217, 119, 6, 0.8) 100%);
   border-color: #fbbf24;
+  box-shadow: 0 6px 16px rgba(217, 119, 6, 0.35);
   z-index: 15;
 }
 
 @keyframes softBlockPulse {
-  0%, 100% { opacity: 0.25; }
-  50%      { opacity: 1; }
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45);
+    border-color: rgba(251, 191, 36, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 14px 2px rgba(245, 158, 11, 0.6);
+    border-color: rgba(251, 191, 36, 1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45);
+    border-color: rgba(251, 191, 36, 0.7);
+  }
 }
 
 /* 3. Active Ongoing Session */
 .booking-card-active {
-  position: relative;
   background: linear-gradient(135deg, rgba(15, 76, 129, 0.9) 0%, rgba(6, 148, 162, 0.85) 100%);
   border: 1.5px solid #22d3ee;
   color: #cffafe;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), inset 0 0 10px rgba(34, 211, 238, 0.2);
+  animation: activeGlow 3s infinite alternate ease-in-out;
   z-index: 10;
   cursor: pointer;
 }
 
-.booking-card-active::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  box-shadow:
-    0 0 18px rgba(34, 211, 238, 0.6),
-    inset 0 0 8px rgba(34, 211, 238, 0.25);
-  opacity: 0.4;
-  animation: activeGlow 3s ease-in-out infinite alternate;
-  will-change: opacity;
-  pointer-events: none;
-}
-
 .booking-card-active:hover {
   transform: translateY(-1px);
+  box-shadow: 0 0 22px rgba(34, 211, 238, 0.6), inset 0 0 12px rgba(34, 211, 238, 0.3);
   z-index: 16;
 }
 
 @keyframes activeGlow {
-  0%   { opacity: 0.4; }
-  100% { opacity: 1; }
+  0% {
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.6), inset 0 0 8px rgba(34, 211, 238, 0.25);
+  }
 }
 
 /* Current Time Indicator Needle */
@@ -339,11 +292,6 @@ button, select, input, textarea, .empty-slot-guide, [data-booking-id], .online-r
   opacity: 1;
 }
 
-.online-request-card {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 260px;   /* Preserved */
-}
-
 /* Thermal Receipt Print Styles */
 @media print {
   body * {
@@ -374,303 +322,144 @@ button, select, input, textarea, .empty-slot-guide, [data-booking-id], .online-r
   }
 }
 
-/* Table Scroll Subtle Right Fade Hint */
-.table-scroll-hint {
-  position: relative;
-}
-
-.table-scroll-hint::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 24px;
-  background: linear-gradient(to right, transparent, rgba(13, 19, 34, 0.9));
-  pointer-events: none;
-}
-
-/* Mobile Sidebar Accordion Chevron Rotation */
-#sidebar-toggle-check:checked ~ label .sidebar-chevron {
-  transform: rotate(180deg);
-}
-
 /* ==========================================================================
-   RESPONSIVE MEDIA QUERIES
+   RESPONSIVE LAYER  (phones < 640px, tablets < 1024px, laptops >= 1024px)
    ========================================================================== */
 
-/* --------------------------------------------------------------------------
-   1. PHONES (max-width: 639px)
-   -------------------------------------------------------------------------- */
-@media (max-width: 639px) {
+html {
+  -webkit-text-size-adjust: 100%;
+}
 
-  /* Header adjustments */
-  .glass-header {
-    position: relative;
+/* Use dynamic viewport units so mobile browser toolbars don't clip the layout */
+.app-body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 1024px) {
+  /* Laptop: dashboard fills the screen, panels scroll internally */
+  .app-body {
+    height: 100vh;
+    height: 100dvh;
   }
+}
 
-  /* Timeline container min-width */
-  #timeline-container {
-    min-width: 900px !important;
-  }
+/* ---- Modals: size by dynamic viewport height, not a fixed 85vh ---- */
+.modal-shell,
+.glass-modal {
+  --modal-max: 85vh;
+  max-height: var(--modal-max);
+}
 
-  /* Sticky cabin column: reduce width to 88px */
-  .cabin-sticky-col {
-    width: 88px !important;
-    min-width: 88px !important;
-    max-width: 88px !important;
-    padding: 4px 6px !important;
-  }
-
-  .cabin-sticky-col .text-sm {
-    font-size: 11px !important;
-    line-height: 1.2 !important;
-  }
-
-  /* Inside sticky col: hide cabin type text */
-  .cabin-row .cabin-sticky-col > div:last-child > span:first-child {
-    display: none !important;
-  }
-
-  /* Status badge on phone: compact colored dot only */
-  .cabin-row .cabin-sticky-col > div:last-child {
-    justify-content: flex-start !important;
-    margin-top: 2px !important;
-  }
-
-  .cabin-row .cabin-sticky-col > div:last-child > span:last-child {
-    display: inline-block !important;
-    width: 8px !important;
-    height: 8px !important;
-    min-width: 8px !important;
-    max-width: 8px !important;
-    min-height: 8px !important;
-    max-height: 8px !important;
-    padding: 0 !important;
-    border-radius: 9999px !important;
-    overflow: hidden !important;
-    font-size: 0 !important;
-    line-height: 0 !important;
-  }
-
-  .cabin-row .cabin-sticky-col > div:last-child > span:last-child[class*="text-cyan"] {
-    background-color: #06b6d4 !important;
-    border-color: #22d3ee !important;
-    box-shadow: 0 0 6px #06b6d4 !important;
-  }
-
-  .cabin-row .cabin-sticky-col > div:last-child > span:last-child[class*="text-amber"] {
-    background-color: #f59e0b !important;
-    border-color: #fbbf24 !important;
-  }
-
-  .cabin-row .cabin-sticky-col > div:last-child > span:last-child[class*="text-emerald"] {
-    background-color: #10b981 !important;
-    border-color: #34d399 !important;
-  }
-
-  /* Slot columns width: reduce to min-w-[42px] */
-  #timeline-time-header > div,
-  .empty-slot-guide {
-    min-width: 42px !important;
-    padding-left: 2px !important;
-    padding-right: 2px !important;
-  }
-
-  #timeline-time-header > div {
-    font-size: 10px !important;
-  }
-
-  /* Cabin row height: reduce to 52px */
-  .cabin-row {
-    min-height: 52px !important;
-    height: 52px !important;
-  }
-
-  /* Empty slot tap expansion */
-  .empty-slot-guide {
-    position: relative;
-  }
-
-  .empty-slot-guide::before {
-    content: '';
-    position: absolute;
-    inset: -4px -2px;
-    z-index: 1;
-  }
-
-  /* Booking cards: hide row 2 (time range + total price) on phones */
-  [data-booking-id] > div:nth-child(2) {
-    display: none !important;
-  }
-
-  [data-booking-id] {
-    top: 3px !important;
-    bottom: 3px !important;
-    padding: 3px 5px !important;
-    justify-content: center !important;
-  }
-
-  [data-booking-id] > div:first-child {
-    height: 100% !important;
-    align-items: center !important;
-  }
-
-  [data-booking-id] .text-xs {
-    font-size: 11px !important;
-  }
-
-  /* Remove text-[9px] on phone, enforce min 10px */
-  [data-booking-id] span[class*="text-[9px]"],
-  [data-booking-id] span[class*="text-[10px]"] {
-    font-size: 10px !important;
-  }
-
-  /* Current time needle badge shrink */
-  .current-time-badge {
-    font-size: 9px !important;
-    padding: 1px 4px !important;
-  }
-
-  /* Modals: full-bleed on phones */
+@supports (height: 1dvh) {
+  .modal-shell,
   .glass-modal {
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
-    border-bottom: none !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 100dvh !important;
-    max-height: 100dvh !important;
+    --modal-max: 88dvh;
+  }
+}
+
+.modal-body {
+  max-height: calc(var(--modal-max) - 135px);
+}
+
+/* ---- Phones & tablets (< 1024px): normal page scroll, stacked panels ---- */
+@media (max-width: 1023px) {
+  /* Timeline shows every cabin; page scrolls vertically, timeline scrolls sideways */
+  .timeline-panel {
+    height: auto;
   }
 
+  #timeline-scroll-container {
+    flex: none;
+    max-height: none;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .timeline-container,
+  #online-requests-list {
+    overscroll-behavior-y: auto;
+  }
+
+  .sidebar-panel {
+    height: auto;
+  }
+
+  #online-requests-list {
+    flex: none;
+    max-height: 60vh;
+    max-height: 60dvh;
+    min-height: 120px;
+  }
+
+  /* Lighter sticky-column shadow so more of the timeline is visible */
+  .cabin-sticky-col {
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* ---- Phones (< 640px) ---- */
+@media (max-width: 639px) {
+  /* Modals become near full-screen sheets */
+  .modal-shell,
+  .glass-modal {
+    --modal-max: 96vh;
+    border-radius: 1rem;
+  }
+
+  @supports (height: 1dvh) {
+    .modal-shell,
+    .glass-modal {
+      --modal-max: 96dvh;
+    }
+  }
+
+  /* The footer can wrap to 2-3 rows on phones, so let flexbox size the body */
   .modal-body {
-    max-height: calc(100dvh - 135px) !important;
+    max-height: none;
   }
 
-  .modal-footer {
-    padding-bottom: max(14px, env(safe-area-inset-bottom)) !important;
+  .cabin-row {
+    min-height: 72px;
   }
+}
 
-  .modal-footer button {
-    min-height: 40px !important;
-  }
-
-  /* Form inputs: min 40px height & 16px font to prevent iOS zoom */
-  input[type="text"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="date"],
+/* ---- Touch devices: bigger tap targets, no iOS auto-zoom on input focus ---- */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   select,
   textarea {
     font-size: 16px !important;
-    min-height: 40px !important;
   }
 
-  textarea {
-    min-height: 60px !important;
+  button,
+  select,
+  [data-booking-id] {
+    touch-action: manipulation;
   }
 
-  /* Snack quantity buttons: min 36x36px */
-  .snack-qty-btn {
-    min-width: 36px !important;
-    min-height: 36px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 16px !important;
-  }
-
-  /* Online sidebar request cards */
-  .online-request-card {
-    padding: 12px !important;
-  }
-
-  .btn-accept-request,
-  .btn-cancel-request {
-    min-height: 44px !important;
-  }
-
-  .sidebar-cabin-select {
-    min-height: 40px !important;
-    width: 100% !important;
-    font-size: 14px !important;
+  .modal-footer button,
+  .modal-header button {
+    min-height: 40px;
   }
 }
 
-/* --------------------------------------------------------------------------
-   2. TABLETS (640px – 1023px)
-   -------------------------------------------------------------------------- */
-@media (min-width: 640px) and (max-width: 1023px) {
-
-  /* Timeline container */
-  #timeline-container {
-    min-width: 1100px !important;
-  }
-
-  /* Sticky cabin column: 128px (w-32) */
-  .cabin-sticky-col {
-    width: 128px !important;
-    min-width: 128px !important;
-    max-width: 128px !important;
-    padding: 8px !important;
-  }
-
-  /* Slot columns width: 52px */
-  #timeline-time-header > div,
-  .empty-slot-guide {
-    min-width: 52px !important;
-  }
-
-  /* Modals: nicely centered, bounded */
-  .glass-modal {
-    max-height: 85vh !important;
-    border-radius: 1rem !important;
-  }
-
-  .modal-body {
-    max-height: calc(85vh - 135px) !important;
+/* Don't leave "stuck" hover styles after a tap on touch screens */
+@media (hover: none) {
+  .empty-slot-guide:hover {
+    background-color: transparent;
+    border: 0;
   }
 }
 
-/* --------------------------------------------------------------------------
-   3. LANDSCAPE PHONE ORIENTATION (height < 500px)
-   -------------------------------------------------------------------------- */
-@media (max-height: 500px) and (orientation: landscape) {
-  header.glass-header {
-    padding: 4px 12px !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    gap: 8px !important;
-  }
-
-  .glass-header > div {
-    width: auto !important;
-  }
-
-  #digital-clock-time {
-    font-size: 12px !important;
-  }
-
-  #digital-clock-date {
-    display: none !important;
-  }
-
-  .glass-modal {
-    max-height: 100dvh !important;
-    height: 100dvh !important;
-  }
-
-  .modal-body {
-    max-height: calc(100dvh - 110px) !important;
-    padding: 12px !important;
-  }
-
-  .modal-header,
-  .modal-footer {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+/* Respect users who ask for less motion (saves battery on phones too) */
+@media (prefers-reduced-motion: reduce) {
+  .booking-card-pending,
+  .booking-card-active {
+    animation: none;
   }
 }
