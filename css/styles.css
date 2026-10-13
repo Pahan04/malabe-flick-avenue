@@ -463,3 +463,27 @@ html {
     animation: none;
   }
 }
+
+/* ==========================================================================
+   FIX: modal jumping / blank gap when toggling Cash/Card on lower items
+   The Cash/Card radios use Tailwind's `sr-only` (position:absolute). Their
+   containing block was the modal shell instead of the scrolling body, so
+   focusing one made the browser scroll the (overflow:hidden) shell itself,
+   pushing the header out of view and leaving an empty gap at the bottom.
+   ========================================================================== */
+.modal-body {
+  position: relative;
+}
+
+.glass-modal,
+.modal-shell {
+  /* `clip` can never be scrolled, even programmatically */
+  overflow: hidden !important;
+}
+
+@supports (overflow: clip) {
+  .glass-modal,
+  .modal-shell {
+    overflow: clip !important;
+  }
+}
