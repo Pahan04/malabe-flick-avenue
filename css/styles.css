@@ -30,25 +30,19 @@ body {
 
 /* Glassmorphism & Surface Utilities */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(17, 24, 39, 0.96);
   border: 1px solid var(--border-color);
 }
 
 .glass-header {
-  background: rgba(13, 19, 34, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(13, 19, 34, 0.98);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-modal {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgb(15, 23, 42);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(6, 182, 212, 0.1);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   max-height: 85vh;
@@ -75,8 +69,6 @@ body {
   z-index: 20;
   background: rgb(13, 19, 34);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  transform: translateZ(0);
-  will-change: transform;
 }
 
 /* Custom Scrollbars */
@@ -129,7 +121,6 @@ body {
   z-index: 20;
   background: #0d1322;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.35);
 }
 
 .timeline-sticky-header {
@@ -164,12 +155,27 @@ body {
   background: linear-gradient(135deg, rgba(120, 53, 15, 0.7) 0%, rgba(180, 83, 9, 0.65) 100%);
   border: 1.5px dashed rgba(251, 191, 36, 0.85);
   color: #fef3c7;
-  animation: softBlockPulse 2.5s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
   cursor: pointer;
 }
 
-.booking-card-pending:hover {
+.booking-card-pending::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: inset 0 0 14px 2px rgba(245, 158, 11, 0.7);
+  pointer-events: none;
+  opacity: 0.35;
+  animation: softBlockPulse 2.5s infinite ease-in-out;
+  will-change: opacity;
+}
+
+.booking-card-pending:hover::after {
   animation-play-state: paused;
+}
+
+.booking-card-pending:hover {
   transform: translateY(-1px);
   background: linear-gradient(135deg, rgba(146, 64, 14, 0.85) 0%, rgba(217, 119, 6, 0.8) 100%);
   border-color: #fbbf24;
@@ -178,18 +184,8 @@ body {
 }
 
 @keyframes softBlockPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45);
-    border-color: rgba(251, 191, 36, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 14px 2px rgba(245, 158, 11, 0.6);
-    border-color: rgba(251, 191, 36, 1);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45);
-    border-color: rgba(251, 191, 36, 0.7);
-  }
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 
 /* 3. Active Ongoing Session */
@@ -197,8 +193,7 @@ body {
   background: linear-gradient(135deg, rgba(15, 76, 129, 0.9) 0%, rgba(6, 148, 162, 0.85) 100%);
   border: 1.5px solid #22d3ee;
   color: #cffafe;
-  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), inset 0 0 10px rgba(34, 211, 238, 0.2);
-  animation: activeGlow 3s infinite alternate ease-in-out;
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.4), inset 0 0 10px rgba(34, 211, 238, 0.2);
   z-index: 10;
   cursor: pointer;
 }
@@ -209,13 +204,21 @@ body {
   z-index: 16;
 }
 
+.booking-card-active::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: inset 0 0 16px 2px rgba(34, 211, 238, 0.65);
+  pointer-events: none;
+  opacity: 0.25;
+  animation: activeGlow 3s infinite alternate ease-in-out;
+  will-change: opacity;
+}
+
 @keyframes activeGlow {
-  0% {
-    box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
-  }
-  100% {
-    box-shadow: 0 0 18px rgba(34, 211, 238, 0.6), inset 0 0 8px rgba(34, 211, 238, 0.25);
-  }
+  0% { opacity: 0.25; }
+  100% { opacity: 1; }
 }
 
 /* Current Time Indicator Needle */
@@ -225,7 +228,7 @@ body {
   bottom: 0;
   width: 2px;
   background: #f43f5e;
-  box-shadow: 0 0 10px #f43f5e, 0 0 20px rgba(244, 63, 94, 0.6);
+  box-shadow: 0 0 6px rgba(244, 63, 94, 0.8);
   z-index: 30;
   pointer-events: none;
 }
@@ -458,8 +461,8 @@ html {
 
 /* Respect users who ask for less motion (saves battery on phones too) */
 @media (prefers-reduced-motion: reduce) {
-  .booking-card-pending,
-  .booking-card-active {
+  .booking-card-pending::after,
+  .booking-card-active::after {
     animation: none;
   }
 }
@@ -486,4 +489,10 @@ html {
   .modal-shell {
     overflow: clip !important;
   }
+}
+
+/* Performance: no live backdrop blur anywhere */
+.backdrop-blur-sm, .backdrop-blur, .backdrop-blur-md, .backdrop-blur-lg {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }

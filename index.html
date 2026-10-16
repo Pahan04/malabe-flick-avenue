@@ -153,7 +153,7 @@
             <span class="text-slate-300">Confirmed Bookings</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded bg-amber-600/80 border border-dashed border-amber-400 animate-pulse"></span>
+            <span class="w-3 h-3 rounded bg-amber-600/80 border border-dashed border-amber-400"></span>
             <span class="text-slate-300">Pending Bookings</span>
           </div>
           <div class="flex items-center gap-1.5">
@@ -244,7 +244,7 @@
   <!-- ================= MODALS & POPUP OVERLAYS ================= -->
 
   <!-- 1. ADD / EDIT DIRECT BOOKING MODAL -->
-  <div id="booking-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden">
+  <div id="booking-modal" class="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-2 sm:p-4 hidden">
     <div class="glass-modal w-full max-w-2xl rounded-2xl overflow-hidden modal-shell flex flex-col animate-in fade-in zoom-in duration-200">
       
       <!-- Modal Header -->
@@ -300,27 +300,6 @@
                        class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500">
               </div>
 
-              <!-- Customer NIC 1 -->
-              <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1">Customer NIC 1 (Primary) *</label>
-                <input type="text" id="booking-nic1" required placeholder="e.g. 199824501234 or 952341234V"
-                       class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 font-mono">
-              </div>
-
-              <!-- Customer NIC 2 -->
-              <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1">Customer NIC 2 (Secondary)</label>
-                <input type="text" id="booking-nic2" placeholder="e.g. 200178904561"
-                       class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 font-mono">
-              </div>
-
-              <!-- Phone Number -->
-              <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
-                <input type="tel" id="booking-phone" placeholder="07X XXXXXXX"
-                       class="w-full bg-slate-900 border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500 font-mono">
-              </div>
-
               <!-- Number of People (Guest Count) -->
               <div>
                 <label class="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
@@ -373,7 +352,7 @@
                       <span class="font-bold flex items-center gap-1"><span>💳</span> Advance Paid</span>
                       <span class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">Rs. 1,000</span>
                     </div>
-                    <span class="text-[10px] text-slate-400">Rs. 1,500 balance due at venue</span>
+                    <span class="text-[10px] text-slate-400">Balance due at venue</span>
                   </div>
                 </label>
                 <label class="cursor-pointer">
@@ -627,7 +606,7 @@
   </div>
 
   <!-- 2. ADD ONLINE REQUEST MODAL (Soft-Block Reservation Intake) -->
-  <div id="online-request-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden">
+  <div id="online-request-modal" class="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-2 sm:p-4 hidden">
     <div class="glass-modal w-full max-w-lg rounded-2xl overflow-hidden modal-shell flex flex-col shadow-2xl">
       <div class="modal-header px-4 sm:px-6 py-3 sm:py-4 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2.5">
@@ -648,25 +627,6 @@
             <label class="block text-xs font-semibold text-slate-300 mb-1">Customer Name *</label>
             <input type="text" id="online-customer-name"  placeholder="e.g. Kavindu Perera"
                    class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100">
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Customer NIC 1</label>
-              <input type="text" id="online-nic1"  placeholder="NIC Number"
-                     class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1">Customer NIC 2</label>
-              <input type="text" id="online-nic2" placeholder="Guest NIC"
-                     class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Phone Number</label>
-            <input type="tel" id="online-phone" placeholder="07X XXXXXXX"
-                   class="w-full bg-slate-900 border border-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -734,7 +694,7 @@
                   <div class="p-2.5 rounded-lg border border-slate-700 bg-slate-800/80 peer-checked:border-emerald-500 peer-checked:bg-emerald-950/40 peer-checked:text-emerald-200 text-xs font-semibold text-slate-300 transition-all flex flex-col gap-1">
                     <div class="flex items-center justify-between">
                       <span class="font-bold flex items-center gap-1"><span>✨</span> Full Payment</span>
-                      <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">Rs. 2,500</span>
+                      <span id="online-full-pay-badge" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">Rs. 2,500</span>
                     </div>
                     <span class="text-[10px] text-slate-400">100% paid online • Zero balance due</span>
                   </div>
@@ -777,7 +737,7 @@
   </div>
 
   <!-- 3. DAILY SALES REPORT MODAL -->
-  <div id="sales-report-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden">
+  <div id="sales-report-modal" class="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-2 sm:p-4 hidden">
     <div class="glass-modal w-full max-w-4xl rounded-2xl overflow-hidden modal-shell flex flex-col">
       
       <!-- Modal Header -->
@@ -917,7 +877,7 @@
   </div>
 
   <!-- Power Cut Modal -->
-  <div id="power-cut-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden">
+  <div id="power-cut-modal" class="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-2 sm:p-4 hidden">
     <div class="glass-modal w-full max-w-md rounded-2xl border border-amber-700/60 shadow-2xl flex flex-col modal-shell">
       <div class="modal-header shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-800 flex items-center justify-between">
         <div>

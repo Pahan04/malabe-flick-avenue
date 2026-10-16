@@ -280,12 +280,17 @@
 
       if (isOnline) {
         if (isAdvancePaid) {
-          onlineAdvancePaid = 1000;
-          balanceDueAmount = 1500; // Rs. 1,500 due at venue as requested
+          onlineAdvancePaid = booking.advancePaidAmount !== undefined ? Number(booking.advancePaidAmount) : (PRICING.onlineAdvance || 1000);
+          if (booking.balanceDueAmount !== undefined && booking.balanceDueAmount !== null) {
+            balanceDueAmount = Number(booking.balanceDueAmount);
+          } else {
+            // Rs. 1,500 standard 3-hour base balance + Rs. 1,000 per extra hour + Rs. 800 per extra member (>4)
+            balanceDueAmount = (PRICING.onlineBalance || 1500) + cabinExtraAmount + extraGuestsAmount;
+          }
           balanceSettled = !!booking.balanceSettled;
         } else {
-          // Full payment online
-          onlineAdvancePaid = grandTotal;
+          // Full payment online: customer pre-paid 100% online, zero pending balance due
+          onlineAdvancePaid = booking.advancePaidAmount !== undefined ? Number(booking.advancePaidAmount) : grandTotal;
           balanceDueAmount = 0;
           balanceSettled = true;
         }
@@ -390,14 +395,14 @@
           excludedAmount = calc.onlineAdvancePaid || 1000;
           if (calc.balanceSettled) {
             if (calc.balancePaymentMethod === 'Card') {
-              tillImpactCard = calc.balanceDueAmount || 1500;
+              tillImpactCard = calc.balanceDueAmount;
             } else {
-              tillImpactCash = calc.balanceDueAmount || 1500;
+              tillImpactCash = calc.balanceDueAmount;
             }
           }
         } else {
           // Full payment online: 100% excluded from venue sales
-          excludedAmount = calc.grandTotal || 2500;
+          excludedAmount = calc.grandTotal || calc.cabinTotalAmount || 2500;
         }
 
         onlineBookingsList.push({
@@ -682,7 +687,7 @@
           if (this.filterQuery) {
             const q = this.filterQuery.toLowerCase();
             const matches = booking.customerName.toLowerCase().includes(q) ||
-                            booking.phone.includes(q) ||
+                            (booking.phone && booking.phone.includes(q)) ||
                             (booking.nic1 && booking.nic1.includes(q)) ||
                             (booking.nic2 && booking.nic2.includes(q)) ||
                             booking.id.toLowerCase().includes(q);
@@ -701,7 +706,7 @@
 
           if (isPending) {
             cardClass = 'booking-card-pending';
-            const balInfo = booking.paymentStatus === 'advance' ? ' • Rs. 1,500 Bal' : '';
+            const balInfo = booking.paymentStatus === 'advance' ? ` • ${Calculator.formatCurrency(calc.balanceDueAmount)} Bal` : '';
             statusTag = `<span class="bg-amber-950/90 text-amber-300 border border-amber-500/50 text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider">⏳ SOFT BLOCK${balInfo}</span>`;
           } else if (isActive) {
             cardClass = 'booking-card-active';
@@ -711,7 +716,7 @@
               if (booking.balanceSettled) {
                 statusTag = `<span class="bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-[9px] font-semibold px-1.5 py-0.5 rounded">✓ Bal Paid (${booking.balancePaymentMethod || 'Cash'})</span>`;
               } else {
-                statusTag = `<span class="bg-amber-950/80 text-amber-300 border border-amber-500/40 text-[9px] font-semibold px-1.5 py-0.5 rounded">⏳ Rs. 1,500 Bal Due</span>`;
+                statusTag = `<span class="bg-amber-950/80 text-amber-300 border border-amber-500/40 text-[9px] font-semibold px-1.5 py-0.5 rounded">⏳ ${Calculator.formatCurrency(calc.balanceDueAmount)} Bal Due</span>`;
               }
             } else {
               statusTag = `<span class="bg-purple-950/80 text-purple-300 border border-purple-500/40 text-[9px] font-semibold px-1.5 py-0.5 rounded">✨ Full Online</span>`;
@@ -994,6 +999,13 @@
       if (this.guestSelect) {
         this.guestSelect.addEventListener('change', () => {
           this.updateLiveTotals();
+          if (this.isEditMode && this.activeBookingId) {
+            const booking = this.dataStore.getBookingById(this.activeBookingId);
+            if (booking && booking.source === 'online') {
+              const currentStatus = document.querySelector('input[name="edit-online-payment-status"]:checked')?.value || booking.paymentStatus;
+              this.renderEditOnlineSettlementContent(booking, currentStatus);
+            }
+          }
         });
       }
 
@@ -1010,6 +1022,13 @@
           this.updateCalculatedEndTime();
           this.updateLiveTotals();
           this.checkForConflicts();
+          if (this.isEditMode && this.activeBookingId) {
+            const booking = this.dataStore.getBookingById(this.activeBookingId);
+            if (booking && booking.source === 'online') {
+              const currentStatus = document.querySelector('input[name="edit-online-payment-status"]:checked')?.value || booking.paymentStatus;
+              this.renderEditOnlineSettlementContent(booking, currentStatus);
+            }
+          }
         });
       }
 
@@ -1224,13 +1243,20 @@
         const selectedOnlineStatus = document.querySelector('input[name="edit-online-payment-status"]:checked');
         paymentStatus = selectedOnlineStatus ? selectedOnlineStatus.value : (existingBooking.paymentStatus || 'advance');
 
+        const extraHours = Math.max(0, durationHours - (PRICING.baseHours || 3));
+        const extraGuests = Math.max(0, guestCount - (PRICING.baseGuests || 4));
+        const extraCabinAmount = (extraHours * (PRICING.extraHourRate || 1000)) + (extraGuests * (PRICING.extraGuestRate || 800));
+        const totalCabinCost = (PRICING.baseRate || 2500) + extraCabinAmount;
+
         if (paymentStatus === 'advance') {
-          advancePaidAmount = 1000;
-          balanceDueAmount = 1500;
+          advancePaidAmount = PRICING.onlineAdvance || 1000;
+          balanceDueAmount = (PRICING.onlineBalance || 1500) + extraCabinAmount;
           if (existingBooking.paymentStatus === 'advance') {
             balanceSettled = !!existingBooking.balanceSettled;
             balanceSettledAt = existingBooking.balanceSettledAt;
-            balanceSettledAmount = existingBooking.balanceSettledAmount;
+            balanceSettledAmount = existingBooking.balanceSettledAmount !== undefined && existingBooking.balanceSettledAmount !== null
+              ? existingBooking.balanceSettledAmount
+              : balanceDueAmount;
           } else {
             balanceSettled = false;
             balanceSettledAt = null;
@@ -1238,7 +1264,7 @@
           }
         } else {
           // Full payment online
-          advancePaidAmount = 2500;
+          advancePaidAmount = totalCabinCost;
           balanceDueAmount = 0;
           balanceSettled = true;
           balanceSettledAt = null;
@@ -1250,9 +1276,9 @@
         id: this.bookingIdInput.value || `bkg_${Date.now()}`,
         cabinId: this.cabinSelect.value,
         customerName: this.customerNameInput.value.trim(),
-        nic1: this.nic1Input.value.trim(),
-        nic2: this.nic2Input.value.trim(),
-        phone: this.phoneInput.value.trim(),
+        nic1: this.nic1Input ? this.nic1Input.value.trim() : (existingBooking ? existingBooking.nic1 || '' : ''),
+        nic2: this.nic2Input ? this.nic2Input.value.trim() : (existingBooking ? existingBooking.nic2 || '' : ''),
+        phone: this.phoneInput ? this.phoneInput.value.trim() : (existingBooking ? existingBooking.phone || '' : ''),
         guestCount,
         date: existingBooking ? existingBooking.date : (this.timelineGrid ? this.timelineGrid.options.currentDate : '2026-08-23'),
         startTime,
@@ -1369,9 +1395,9 @@
       if (this.onlineSettlementSection) this.onlineSettlementSection.classList.add('hidden');
 
       this.customerNameInput.value = prefill.customerName || '';
-      this.nic1Input.value = prefill.nic1 || '';
-      this.nic2Input.value = prefill.nic2 || '';
-      this.phoneInput.value = prefill.phone || '';
+      if (this.nic1Input) this.nic1Input.value = prefill.nic1 || '';
+      if (this.nic2Input) this.nic2Input.value = prefill.nic2 || '';
+      if (this.phoneInput) this.phoneInput.value = prefill.phone || '';
       this.notesInput.value = prefill.notes || '';
 
       // Set Number of People (Default 2)
@@ -1449,9 +1475,9 @@
 
       this.cabinSelect.value = booking.cabinId;
       this.customerNameInput.value = booking.customerName;
-      this.nic1Input.value = booking.nic1 || '';
-      this.nic2Input.value = booking.nic2 || '';
-      this.phoneInput.value = booking.phone || '';
+      if (this.nic1Input) this.nic1Input.value = booking.nic1 || '';
+      if (this.nic2Input) this.nic2Input.value = booking.nic2 || '';
+      if (this.phoneInput) this.phoneInput.value = booking.phone || '';
       
       // Populate guest count (default 2)
       if (this.guestSelect) {
@@ -1513,6 +1539,15 @@
       const status = currentStatus || booking.paymentStatus || 'advance';
       const isAdvance = status === 'advance';
 
+      const guestCount = parseInt(this.guestSelect ? this.guestSelect.value : (booking.guestCount || 2), 10) || 2;
+      const durationHours = parseInt(this.durationSelect ? this.durationSelect.value : (booking.durationHours || 3), 10) || 3;
+      const extraHours = Math.max(0, durationHours - (PRICING.baseHours || 3));
+      const extraGuests = Math.max(0, guestCount - (PRICING.baseGuests || 4));
+      const extraCabinAmount = (extraHours * (PRICING.extraHourRate || 1000)) + (extraGuests * (PRICING.extraGuestRate || 800));
+      const totalSuiteCost = (PRICING.baseRate || 2500) + extraCabinAmount;
+      const pendingBal = (PRICING.onlineBalance || 1500) + extraCabinAmount;
+      const formattedBal = Calculator.formatCurrency(pendingBal);
+
       if (this.onlineStatusBadge) {
         this.onlineStatusBadge.textContent = isAdvance ? 'Advance Paid (Online)' : 'Full Payment (Online)';
         this.onlineStatusBadge.className = isAdvance
@@ -1523,12 +1558,13 @@
       if (isAdvance) {
         if (booking.balanceSettled && booking.paymentStatus === 'advance') {
           const isCash = (booking.balancePaymentMethod || 'Cash') === 'Cash';
+          const settledAmountFormatted = Calculator.formatCurrency(booking.balanceSettledAmount || pendingBal);
           this.onlineSettlementContent.innerHTML = `
             <div class="p-3 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 space-y-2">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="font-bold flex items-center gap-1">✓ Balance Settled at Venue (Rs. 1,500 via ${booking.balancePaymentMethod || 'Cash'})</div>
-                  <div class="text-[11px] text-emerald-300/80">Online Advance: Rs. 1,000 (Excluded from Daily Till) • Daily Sales Logged: <strong class="text-white font-mono">+Rs. 1,500 (${booking.balancePaymentMethod || 'Cash'})</strong></div>
+                  <div class="font-bold flex items-center gap-1">✓ Balance Settled at Venue (${settledAmountFormatted} via ${booking.balancePaymentMethod || 'Cash'})</div>
+                  <div class="text-[11px] text-emerald-300/80">Online Advance: Rs. 1,000 (Excluded from Daily Till) • Daily Sales Logged: <strong class="text-white font-mono">+${settledAmountFormatted} (${booking.balancePaymentMethod || 'Cash'})</strong></div>
                 </div>
                 <span class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">Settled</span>
               </div>
@@ -1571,7 +1607,7 @@
               <div class="flex items-center justify-between">
                 <div>
                   <div class="text-[11px] text-amber-300/80">Online Advance Paid: <strong class="font-mono text-slate-100">Rs. 1,000</strong> (Excluded)</div>
-                  <div class="text-xs font-black text-amber-300 uppercase tracking-wide">Pending Balance: <span class="font-mono text-amber-400">Rs. 1,500</span></div>
+                  <div class="text-xs font-black text-amber-300 uppercase tracking-wide">Pending Balance: <span class="font-mono text-amber-400 font-bold">${formattedBal}</span></div>
                 </div>
                 <span class="text-[10px] font-bold bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded border border-amber-500/40">Due At Venue</span>
               </div>
@@ -1592,7 +1628,7 @@
                 </div>
 
                 <button type="button" id="btn-modal-confirm-balance" class="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-lg text-xs font-bold shadow-md flex items-center gap-1 transition-all">
-                  <span>✓</span> Confirm Balance Paid (Rs. 1,500)
+                  <span>✓</span> Confirm Balance Paid (${formattedBal})
                 </button>
               </div>
             </div>
@@ -1603,8 +1639,9 @@
             confirmBalBtn.addEventListener('click', () => {
               const methodEl = document.querySelector(`input[name="modal-bal-pay-${booking.id}"]:checked`);
               const method = methodEl ? methodEl.value : 'Cash';
+              booking.balanceDueAmount = pendingBal;
               this.dataStore.settleOnlineBalance(booking.id, method);
-              this.toast.success(`Rs. 1,500 balance marked as paid via ${method} for ${booking.customerName}!`);
+              this.toast.success(`${formattedBal} balance marked as paid via ${method} for ${booking.customerName}!`);
               this.openEditBookingModal(booking.id);
               this.timelineGrid.refresh();
               window.renderSidebarRequests && window.renderSidebarRequests();
@@ -1616,7 +1653,7 @@
         this.onlineSettlementContent.innerHTML = `
           <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/90 border border-slate-700 text-slate-300">
             <div>
-              <div class="font-bold text-emerald-400">✨ 100% Paid in Full Online (Rs. 2,500)</div>
+              <div class="font-bold text-emerald-400">✨ 100% Paid in Full Online (${Calculator.formatCurrency(totalSuiteCost)})</div>
               <div class="text-[11px] text-slate-400">No balance remaining • Excluded from front desk daily till</div>
             </div>
             <span class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">Pre-paid</span>
@@ -1634,7 +1671,7 @@
         return;
       }
 
-      if (!formData.nic1) {
+      if (this.nic1Input && !formData.nic1) {
         this.toast.error('NIC 1 is required for front-desk security check');
         this.nic1Input.focus();
         return;
@@ -1987,6 +2024,9 @@
       const timeEl = document.getElementById('digital-clock-time');
       const dateEl = document.getElementById('digital-clock-date');
 
+      let lastMinuteKey = null;
+      let lastDateText = '';
+
       const updateClock = () => {
         const now = new Date();
         const hours = now.getHours();
@@ -1996,23 +2036,29 @@
         const displayHours = hours % 12 || 12;
 
         if (timeEl) {
-          timeEl.innerHTML = `
-            <span>${String(displayHours).padStart(2, '0')}</span><span class="animate-pulse">:</span><span>${String(minutes).padStart(2, '0')}</span><span class="animate-pulse">:</span><span>${String(seconds).padStart(2, '0')}</span> <span class="text-xs text-amber-400 font-bold ml-1">${ampm}</span>
-          `;
+          const text = `${String(displayHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+          if (!timeEl.firstChild || !timeEl.dataset.ready) {
+            timeEl.innerHTML = `<span class="clock-digits"></span> <span class="text-xs text-amber-400 font-bold ml-1 clock-ampm"></span>`;
+            timeEl.dataset.ready = '1';
+          }
+          timeEl.querySelector('.clock-digits').textContent = text;
+          timeEl.querySelector('.clock-ampm').textContent = ampm;
         }
 
         if (dateEl) {
           const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          const dayName = days[now.getDay()];
-          const monthName = months[now.getMonth()];
-          const dayNum = now.getDate();
-          const year = now.getFullYear();
-
-          dateEl.textContent = `${dayName}, ${monthName} ${dayNum}, ${year}`;
+          const dateText = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+          if (dateText !== lastDateText) {
+            dateEl.textContent = dateText;
+            lastDateText = dateText;
+          }
         }
 
-        if (this.timeline) {
+        // The needle only needs to move when the minute changes
+        const minuteKey = `${now.getDate()}-${hours}-${minutes}`;
+        if (this.timeline && minuteKey !== lastMinuteKey) {
+          lastMinuteKey = minuteKey;
           this.timeline.updateCurrentTimeIndicator(now);
         }
       };
@@ -2065,12 +2111,14 @@
 
         let paymentStatusBlock = '';
         if (isAdvance) {
+          const balDueFormatted = Calculator.formatCurrency(calc.balanceDueAmount);
+          const balSettledFormatted = Calculator.formatCurrency(req.balanceSettledAmount || calc.balanceDueAmount);
           if (isSettled) {
             paymentStatusBlock = `
               <div class="p-2 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs">
                 <div class="flex items-center justify-between">
                   <span class="font-bold flex items-center gap-1"><span>✓</span> Balance Settled</span>
-                  <span class="font-mono text-[11px] font-bold text-emerald-300">Rs. 1,500 (${req.balancePaymentMethod || 'Cash'})</span>
+                  <span class="font-mono text-[11px] font-bold text-emerald-300">${balSettledFormatted} (${req.balancePaymentMethod || 'Cash'})</span>
                 </div>
                 <div class="text-[10px] text-emerald-400/80 mt-0.5">Advance Paid Online: Rs. 1,000</div>
               </div>
@@ -2081,7 +2129,7 @@
                 <div class="flex items-center justify-between">
                   <div>
                     <div class="text-[10px] text-amber-300/80">Online Advance: <strong class="font-mono text-slate-100">Rs. 1,000</strong></div>
-                    <div class="text-xs font-black text-amber-300 tracking-wide uppercase">Pending Balance: <span class="font-mono text-amber-400 font-black">Rs. 1,500</span></div>
+                    <div class="text-xs font-black text-amber-300 tracking-wide uppercase">Pending Balance: <span class="font-mono text-amber-400 font-black">${balDueFormatted}</span></div>
                   </div>
                   <span class="text-[9px] font-bold bg-amber-500/30 text-amber-200 px-1.5 py-0.5 rounded border border-amber-500/40 uppercase">Due Venue</span>
                 </div>
@@ -2093,7 +2141,7 @@
           paymentStatusBlock = `
             <div class="p-2 rounded-lg bg-slate-900/90 border border-emerald-500/40 text-xs flex items-center justify-between">
               <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
-                <span>✨</span> Full Payment Online (Rs. 2,500)
+                <span>✨</span> Full Payment Online (${Calculator.formatCurrency(calc.grandTotal || calc.cabinTotalAmount)})
               </div>
               <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono font-bold">Bal: Rs. 0</span>
             </div>
@@ -2107,7 +2155,7 @@
                 <div class="font-bold text-sm text-slate-100 flex items-center gap-1.5">
                   <span>${req.customerName}</span>
                 </div>
-                <div class="text-xs text-slate-400 font-mono">${req.phone}</div>
+                <div class="text-xs text-slate-400 font-mono">${req.phone || ''}</div>
               </div>
               <div class="flex flex-col items-end gap-1">
                 <span class="bg-amber-950/80 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
@@ -2315,6 +2363,11 @@
         guestSelect.value = '2';
       }
 
+      const durationSelect = document.getElementById('online-duration');
+      if (durationSelect) {
+        durationSelect.value = '3';
+      }
+
       const advanceRadio = document.getElementById('online-pay-advance');
       const fullRadio = document.getElementById('online-pay-full');
       if (advanceRadio) advanceRadio.checked = true;
@@ -2322,17 +2375,84 @@
       const indicatorEl = document.getElementById('online-payment-indicator');
       const balanceTextEl = document.getElementById('online-indicator-balance-text');
 
-      const updateOnlineIndicator = () => {
+      const calculateOnlineFinancials = () => {
+        const guestCount = parseInt(guestSelect ? guestSelect.value : '2', 10) || 2;
+        const duration = parseInt(durationSelect ? durationSelect.value : '3', 10) || 3;
         const isAdvance = advanceRadio && advanceRadio.checked;
+
+        const baseHours = PRICING.baseHours || 3;
+        const extraHours = Math.max(0, duration - baseHours);
+        const extraHourRate = PRICING.extraHourRate || 1000;
+        const extraHoursAmount = extraHours * extraHourRate;
+
+        const baseGuests = PRICING.baseGuests || 4;
+        const extraGuests = Math.max(0, guestCount - baseGuests);
+        const extraGuestRate = PRICING.extraGuestRate || 800;
+        const extraGuestsAmount = extraGuests * extraGuestRate;
+
+        const baseRate = PRICING.baseRate || 2500;
+        const totalSuiteCost = baseRate + extraHoursAmount + extraGuestsAmount;
+
+        let advancePaid = 0;
+        let pendingBalance = 0;
+
+        if (isAdvance) {
+          advancePaid = PRICING.onlineAdvance || 1000;
+          // Standard 3 hours pending balance is Rs 1,500.
+          // For each extra hour, Rs 1000 is added.
+          // For each more member beyond 4 people, Rs 800 is added.
+          pendingBalance = (PRICING.onlineBalance || 1500) + extraHoursAmount + extraGuestsAmount;
+        } else {
+          // Full payment: 100% pre-paid online, zero pending balance due
+          advancePaid = totalSuiteCost;
+          pendingBalance = 0;
+        }
+
+        return {
+          guestCount,
+          duration,
+          isAdvance,
+          extraHours,
+          extraGuests,
+          extraHoursAmount,
+          extraGuestsAmount,
+          totalSuiteCost,
+          advancePaid,
+          pendingBalance
+        };
+      };
+
+      const updateOnlineIndicator = () => {
+        const fin = calculateOnlineFinancials();
+
+        const fullPayBadge = document.getElementById('online-full-pay-badge');
+        if (fullPayBadge) {
+          fullPayBadge.textContent = Calculator.formatCurrency(fin.totalSuiteCost);
+        }
+
         if (indicatorEl) {
-          if (isAdvance) {
+          if (fin.isAdvance) {
+            const breakdownParts = [];
+            if (fin.extraHours > 0) {
+              breakdownParts.push(`+${fin.extraHours}h extra (${Calculator.formatCurrency(fin.extraHoursAmount)})`);
+            }
+            if (fin.extraGuests > 0) {
+              breakdownParts.push(`+${fin.extraGuests} extra ${fin.extraGuests === 1 ? 'member' : 'members'} (${Calculator.formatCurrency(fin.extraGuestsAmount)})`);
+            }
+            const breakdownText = breakdownParts.length > 0 
+              ? `<span class="text-[10px] text-amber-200/80 font-normal font-sans ml-1">(${breakdownParts.join(', ')})</span>` 
+              : '';
+
             indicatorEl.className = 'p-2.5 rounded-lg bg-amber-950/70 border border-amber-500/50 text-amber-200 flex items-center justify-between';
             indicatorEl.innerHTML = `
               <div class="flex items-center gap-2">
                 <span class="text-base">⏳</span>
                 <div>
                   <div class="text-[11px] text-amber-300/80 font-medium">Advance Paid Online: <span class="font-mono font-bold text-slate-100">Rs. 1,000</span></div>
-                  <div class="text-xs font-black text-amber-300 tracking-wide uppercase">Pending Balance: <span class="font-mono text-amber-400">Rs. 1,500</span></div>
+                  <div class="text-xs font-black text-amber-300 tracking-wide uppercase">
+                    Pending Balance: <span id="online-indicator-balance-text" class="font-mono text-amber-400 font-black">${Calculator.formatCurrency(fin.pendingBalance)}</span>
+                    ${breakdownText}
+                  </div>
                 </div>
               </div>
               <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-500/30 text-amber-200 rounded border border-amber-400/40 uppercase tracking-wider">
@@ -2345,8 +2465,8 @@
               <div class="flex items-center gap-2">
                 <span class="text-base">✨</span>
                 <div>
-                  <div class="text-[11px] text-emerald-300/80 font-medium">Full Amount Paid Online: <span class="font-mono font-bold text-slate-100">Rs. 2,500</span></div>
-                  <div class="text-xs font-black text-emerald-300 tracking-wide uppercase">Pending Balance: <span class="font-mono text-emerald-400">Rs. 0</span></div>
+                  <div class="text-[11px] text-emerald-300/80 font-medium">Full Amount Paid Online: <span class="font-mono font-bold text-slate-100">${Calculator.formatCurrency(fin.totalSuiteCost)}</span></div>
+                  <div class="text-xs font-black text-emerald-300 tracking-wide uppercase">Pending Balance: <span id="online-indicator-balance-text" class="font-mono text-emerald-400 font-black">Rs. 0</span></div>
                 </div>
               </div>
               <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/30 text-emerald-200 rounded border border-emerald-400/40 uppercase tracking-wider">
@@ -2357,6 +2477,8 @@
         }
       };
 
+      if (guestSelect) guestSelect.onchange = updateOnlineIndicator;
+      if (durationSelect) durationSelect.onchange = updateOnlineIndicator;
       document.querySelectorAll('input[name="online-payment-status"]').forEach(r => {
         r.onchange = updateOnlineIndicator;
       });
@@ -2382,8 +2504,12 @@
         form.onsubmit = (e) => {
           e.preventDefault();
           const customerName = document.getElementById('online-customer-name').value.trim();
-          const nic1 = document.getElementById('online-nic1').value.trim();
-          const phone = document.getElementById('online-phone').value.trim();
+          const nic1Input = document.getElementById('online-nic1');
+          const nic2Input = document.getElementById('online-nic2');
+          const phoneInput = document.getElementById('online-phone');
+          const nic1 = nic1Input ? nic1Input.value.trim() : '';
+          const nic2 = nic2Input ? nic2Input.value.trim() : '';
+          const phone = phoneInput ? phoneInput.value.trim() : '';
           const guestCount = parseInt(document.getElementById('online-guests').value, 10) || 2;
           const cabinId = cabinSelect.value;
           const startTime = timeSelect.value;
@@ -2391,22 +2517,23 @@
           const paymentStatus = document.querySelector('input[name="online-payment-status"]:checked').value || 'advance';
           const notes = document.getElementById('online-notes').value.trim();
 
-          if (!customerName || !nic1) {
-            this.toast.error('Customer name and primary NIC are required');
+          if (!customerName || (nic1Input && !nic1)) {
+            this.toast.error(nic1Input ? 'Customer name and primary NIC are required' : 'Customer name is required');
             return;
           }
 
           const [h, m] = startTime.split(':').map(Number);
           const endTime = `${String(h + duration).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
-          const isAdvance = paymentStatus === 'advance';
+          const financials = calculateOnlineFinancials();
+          const isAdvance = financials.isAdvance;
 
           const newReq = {
             id: `onl_${Date.now()}`,
             cabinId,
             customerName,
             nic1,
-            nic2: document.getElementById('online-nic2').value.trim(),
+            nic2,
             phone,
             guestCount,
             date: this.simulatedDate || '2026-08-23',
@@ -2414,8 +2541,8 @@
             durationHours: duration,
             endTime,
             paymentStatus,
-            advancePaidAmount: isAdvance ? 1000 : 2500,
-            balanceDueAmount: isAdvance ? 1500 : 0,
+            advancePaidAmount: financials.advancePaid,
+            balanceDueAmount: financials.pendingBalance,
             balanceSettled: !isAdvance,
             balancePaymentMethod: 'Cash',
             cabinPaymentMethod: isAdvance ? 'Advance' : 'Online',
@@ -2435,7 +2562,10 @@
           this.dataStore.addBooking(newReq);
           const assignedCabin = this.dataStore.getCabinById(cabinId);
           const cabinName = assignedCabin ? assignedCabin.name : cabinId;
-          this.toast.success(`Online Request created for ${customerName} (${guestCount} people, ${isAdvance ? 'Advance Paid' : 'Full Payment'})!`);
+          const statusDesc = isAdvance 
+            ? `Advance Paid Rs. 1,000 • Pending Balance: ${Calculator.formatCurrency(financials.pendingBalance)}` 
+            : `Full Payment ${Calculator.formatCurrency(financials.totalSuiteCost)}`;
+          this.toast.success(`Online Request created for ${customerName} (${guestCount} people, ${duration}h - ${statusDesc})!`);
           modal.classList.add('hidden');
           this.timeline.refresh();
           this.initSidebarRequests();
